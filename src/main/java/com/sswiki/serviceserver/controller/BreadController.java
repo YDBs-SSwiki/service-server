@@ -1,5 +1,7 @@
 package com.sswiki.serviceserver.controller;
 
+import com.sswiki.serviceserver.dto.BreadDetailResponseDTO;
+import com.sswiki.serviceserver.dto.BreadSummaryResponseDTO;
 import com.sswiki.serviceserver.dto.GetAllBreadsResponseDTO;
 import com.sswiki.serviceserver.entity.Bread;
 import com.sswiki.serviceserver.service.BreadService;
@@ -8,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.InputStream;
+import java.util.List;
 
 @RestController
 @RequestMapping("/bread")
@@ -29,12 +32,29 @@ public class BreadController {
             @RequestParam("detail") String detail,
             @RequestParam("price") Integer price,
             @RequestParam("count") Integer count,
-            @RequestParam("image") MultipartFile imageFile
+            @RequestParam("image") MultipartFile imageFile,
+            @RequestParam("storeIds") List<Integer> storeIds
+
     ) throws Exception {
         // 빵 데이터와 이미지 파일을 처리하여 저장
         InputStream imageInputStream = imageFile.getInputStream();
         String contentType = imageFile.getContentType();
-        return breadService.saveBreadWithImage(name, detail, price, count, imageInputStream, contentType);
+
+        return breadService.saveBreadWithImageAndStores(
+                name, detail, price, count,
+                imageInputStream, contentType,
+                storeIds
+        );
     }
 
+    // 해당 breadId에 해당하는 빵 데이터 가져오기
+    @GetMapping ("/{breadId}")
+    public BreadDetailResponseDTO getBread(@PathVariable Integer breadId) {
+        return breadService.getBread(breadId);
+    }
+
+    @GetMapping("/{breadId}/summary")
+    public BreadSummaryResponseDTO getBreadSummary(@PathVariable Integer breadId) {
+        return breadService.getBreadSummary(breadId);
+    }
 }

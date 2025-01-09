@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -25,6 +27,9 @@ public class Bread {
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    @OneToMany(mappedBy = "bread", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<BreadToStores> breadToStores = new ArrayList<>();
 
     @PrePersist
     public void prePersist() {
