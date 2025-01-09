@@ -11,14 +11,10 @@ import java.util.Objects;
 @Getter
 @Embeddable
 public class BreadToStoresId implements Serializable {
-    // Getter & Setter
     private Integer breadId;
     private Integer storeId;
 
-    // 기본 생성자
     public BreadToStoresId() {}
-
-    // 생성자
     public BreadToStoresId(Integer breadId, Integer storeId) {
         this.breadId = breadId;
         this.storeId = storeId;

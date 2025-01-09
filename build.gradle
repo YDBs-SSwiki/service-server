@@ -28,6 +28,8 @@ dependencies {
     implementation 'org.mariadb.jdbc:mariadb-java-client:3.1.2'
     implementation 'org.projectlombok:lombok:1.18.28'
     annotationProcessor 'org.projectlombok:lombok:1.18.28'
+    implementation 'software.amazon.awssdk:s3:2.20.21' // AWS S3 SDK
+    implementation 'software.amazon.awssdk:core:2.20.21' // AWS Core SDK
 }
 
 tasks.named('test') {

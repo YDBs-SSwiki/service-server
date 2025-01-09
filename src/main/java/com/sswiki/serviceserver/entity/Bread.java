@@ -21,6 +21,8 @@ public class Bread {
     private Integer price;
     private Integer count;
 
+    private String imageUrl; // 이미지 파일 경로 필드 추가
+
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
