@@ -1,15 +1,15 @@
 package com.sswiki.serviceserver.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Getter
 @Setter
+@Builder
+@AllArgsConstructor
 @NoArgsConstructor
 public class Review {
     @Id
@@ -27,7 +27,9 @@ public class Review {
     private String title;
     private Integer rating;
     private String content;
-    private Integer likes;
+    private Integer likes = 0;
+
+    private String imageUrl;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

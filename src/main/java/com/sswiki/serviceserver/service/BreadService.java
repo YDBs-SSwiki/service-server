@@ -9,6 +9,8 @@ import com.sswiki.serviceserver.entity.Store;
 import com.sswiki.serviceserver.repository.BreadRepository;
 import com.sswiki.serviceserver.repository.BreadToStoresRepository;
 import com.sswiki.serviceserver.repository.StoreRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.io.InputStream;
@@ -18,6 +20,7 @@ import java.util.stream.Collectors;
 
 @Service
 public class BreadService {
+    private static final Logger logger = LoggerFactory.getLogger(BreadService.class);
     private final BreadRepository breadRepository;
     private final S3Service s3Service;
 
@@ -38,6 +41,7 @@ public class BreadService {
     }
 
     public GetAllBreadsResponseDTO getAllBreads() {
+        logger.info("Get all breads");
         List<Bread> breads = breadRepository.findAll();
 
         // 각각의 Bread에 대해 store 정보까지 매핑
