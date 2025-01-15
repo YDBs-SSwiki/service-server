@@ -27,6 +27,8 @@ public class Review {
     private String title;
     private Integer rating;
     private String content;
+
+    @Builder.Default
     private Integer likes = 0;
 
     private String imageUrl;
@@ -43,5 +45,10 @@ public class Review {
     @PreUpdate
     public void preUpdate() {
         this.updatedAt = LocalDateTime.now();
+    }
+
+
+    public Integer getBreadId() {
+        return this.bread.getBreadId();
     }
 }

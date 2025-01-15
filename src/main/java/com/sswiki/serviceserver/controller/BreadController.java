@@ -3,6 +3,7 @@ package com.sswiki.serviceserver.controller;
 import com.sswiki.serviceserver.dto.BreadDetailResponseDTO;
 import com.sswiki.serviceserver.dto.BreadSummaryResponseDTO;
 import com.sswiki.serviceserver.dto.GetAllBreadsResponseDTO;
+import com.sswiki.serviceserver.dto.GetBreadReviewsResponseDTO;
 import com.sswiki.serviceserver.entity.Bread;
 import com.sswiki.serviceserver.service.BreadService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,8 +54,15 @@ public class BreadController {
         return breadService.getBread(breadId);
     }
 
+    // 해당 breadId에 해당하는 빵 데이터 요약 정보 가져오기
     @GetMapping("/{breadId}/summary")
     public BreadSummaryResponseDTO getBreadSummary(@PathVariable Integer breadId) {
         return breadService.getBreadSummary(breadId);
+    }
+
+    // 해당 breadId에 해당하는 빵 리뷰 가져오기
+    @GetMapping("{breadId}/reviews")
+    public GetBreadReviewsResponseDTO getBreadReviews(@PathVariable Integer breadId) {
+        return breadService.getBreadReviews(breadId);
     }
 }

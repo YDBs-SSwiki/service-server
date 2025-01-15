@@ -1,13 +1,13 @@
 package com.sswiki.serviceserver.service;
 
-import com.sswiki.serviceserver.dto.BreadDetailResponseDTO;
-import com.sswiki.serviceserver.dto.BreadSummaryResponseDTO;
+import com.sswiki.serviceserver.dto.*;
 import com.sswiki.serviceserver.entity.Bread;
-import com.sswiki.serviceserver.dto.GetAllBreadsResponseDTO;
 import com.sswiki.serviceserver.entity.BreadToStores;
+import com.sswiki.serviceserver.entity.Review;
 import com.sswiki.serviceserver.entity.Store;
 import com.sswiki.serviceserver.repository.BreadRepository;
 import com.sswiki.serviceserver.repository.BreadToStoresRepository;
+import com.sswiki.serviceserver.repository.ReviewRepository;
 import com.sswiki.serviceserver.repository.StoreRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,6 +23,7 @@ public class BreadService {
     private static final Logger logger = LoggerFactory.getLogger(BreadService.class);
     private final BreadRepository breadRepository;
     private final S3Service s3Service;
+    private final ReviewRepository reviewRepository;
 
     // 매장 및 중간 테이블 레포지토리 필요
     private final StoreRepository storeRepository;
@@ -30,12 +31,13 @@ public class BreadService {
 
     public BreadService(
             BreadRepository breadRepository,
-            S3Service s3Service,
+            S3Service s3Service, ReviewRepository reviewRepository,
             StoreRepository storeRepository,
             BreadToStoresRepository breadToStoresRepository
     ) {
         this.breadRepository = breadRepository;
         this.s3Service = s3Service;
+        this.reviewRepository = reviewRepository;
         this.storeRepository = storeRepository;
         this.breadToStoresRepository = breadToStoresRepository;
     }
@@ -172,4 +174,25 @@ public class BreadService {
                 bread.getDetail()
         );
     }
+
+    public GetBreadReviewsResponseDTO getBreadReviews(Integer breadId) {
+        List<Review> reviews = reviewRepository.findByBread_BreadId(breadId);
+
+        List<GetBreadReviewsResponseDTO.ReviewDTO> reviewDTOList = reviews.stream()
+                .map(review -> new GetBreadReviewsResponseDTO.ReviewDTO(
+                        review.getReviewId(),
+                        review.getUser().getUserId(),
+                        review.getRating(),
+                        review.getContent(),
+                        review.getLikes(),
+                        review.getCreatedAt()
+                ))
+                .toList();
+
+        return new GetBreadReviewsResponseDTO(
+                breadId,
+                reviewDTOList
+        );
+    }
+
 }
