@@ -7,5 +7,8 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ReviewLikesRepository extends JpaRepository<ReviewLikes, ReviewLikesId> {
+    boolean existsByReviewReviewIdAndUserUserId(Long reviewId, Long userId);
+
+    void deleteByReviewReviewIdAndUserUserId(Long reviewId, Long userId);
     // 필요하다면 커스텀 쿼리 메서드를 추가할 수 있음
 }

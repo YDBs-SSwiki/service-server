@@ -1,6 +1,8 @@
 package com.sswiki.serviceserver.controller;
 
 import com.sswiki.serviceserver.dto.CreateReviewResponseDTO;
+import com.sswiki.serviceserver.dto.UpdateReviewLikeRequestDTO;
+import com.sswiki.serviceserver.dto.UpdateReviewLikeResponseDTO;
 import com.sswiki.serviceserver.service.ReviewService;
 import org.antlr.v4.runtime.misc.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,4 +52,14 @@ public class ReviewController {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    @PostMapping("/{reviewId}/likes")
+    public ResponseEntity<UpdateReviewLikeResponseDTO> toggleLike(
+            @PathVariable Long reviewId,
+            @RequestBody UpdateReviewLikeRequestDTO likeRequest
+    ) {
+        UpdateReviewLikeResponseDTO response = reviewService.toggleLike(reviewId, likeRequest.getUserId(), likeRequest.isLike());
+        return ResponseEntity.ok(response);
+    }
+
 }

@@ -31,5 +31,14 @@ public class ReviewLikes {
     public void prePersist() {
         this.createdAt = LocalDateTime.now();
     }
+
+    // ★ 추가: User, Review 를 받는 생성자
+    public ReviewLikes(User user, Review review) {
+        this.user = user;
+        this.review = review;
+        // EmbeddedId 세팅
+        this.id.setUserId(user.getUserId());
+        this.id.setReviewId(review.getReviewId());
+    }
 }
 
