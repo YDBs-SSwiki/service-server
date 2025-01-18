@@ -1,9 +1,6 @@
 package com.sswiki.serviceserver.controller;
 
-import com.sswiki.serviceserver.dto.BreadDetailResponseDTO;
-import com.sswiki.serviceserver.dto.BreadSummaryResponseDTO;
-import com.sswiki.serviceserver.dto.GetAllBreadsResponseDTO;
-import com.sswiki.serviceserver.dto.GetUserReviewsResponseDTO;
+import com.sswiki.serviceserver.dto.*;
 import com.sswiki.serviceserver.entity.Bread;
 import com.sswiki.serviceserver.entity.User;
 import com.sswiki.serviceserver.service.BreadService;
@@ -29,5 +26,10 @@ public class UserController {
     @GetMapping("/{userID}/reviews")
     public GetUserReviewsResponseDTO getUserReviews(@PathVariable Integer userID) {
         return userService.getUserReviews(userID);
+    }
+
+    @GetMapping("/{userID}/favorites")
+    public List<GetUserFavoritesResponseDTO> getUserFavorites(@PathVariable Integer userID) {
+        return userService.getUserFavorites(userID);
     }
 }
