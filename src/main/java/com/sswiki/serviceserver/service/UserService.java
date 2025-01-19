@@ -1,8 +1,6 @@
 package com.sswiki.serviceserver.service;
 
-import com.sswiki.serviceserver.dto.FavoriteItemDTO;
-import com.sswiki.serviceserver.dto.GetUserFavoritesResponseDTO;
-import com.sswiki.serviceserver.dto.GetUserReviewsResponseDTO;
+import com.sswiki.serviceserver.dto.*;
 import com.sswiki.serviceserver.entity.Bread;
 import com.sswiki.serviceserver.entity.Favorites;
 import com.sswiki.serviceserver.entity.Review;
@@ -10,6 +8,8 @@ import com.sswiki.serviceserver.entity.User;
 import com.sswiki.serviceserver.repository.*;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -84,5 +84,42 @@ public class UserService {
         responseDTO.setFavorites(favoriteItems);
 
         return List.of(responseDTO);
+    }
+
+    public UpdateUserResponseDTO updateUser(Integer userID, UpdateUserRequestDTO requestDTO) {
+        // 1) userID로 User 엔티티 조회 (유효성 체크)
+        User user = userRepository.findById(userID)
+                .orElseThrow(() -> new RuntimeException("해당 유저가 존재하지 않습니다. userID=" + userID));
+
+        if (Duration.between(user.getLastModifiedAt(), LocalDateTime.now()).compareTo(Duration.ofDays(30)) < 0) {
+            throw new RuntimeException("마지막 변경일이 30일 이내입니다.");
+        }
+
+        // 2) User 엔티티의 userName 필드를 requestDTO의 userName으로 변경
+        user.setUsername(requestDTO.getUsername());
+
+        // 3) User 엔티티 저장
+        userRepository.save(user);
+
+        // 4) ResponseDTO 생성 후 반환
+        return new UpdateUserResponseDTO(
+                user.getUserId(),
+                user.getUsername(),
+                user.getLastModifiedAt()
+        );
+    }
+
+    public GetUserInfoResponseDTO getUserInfo(Integer userID) {
+        User user = userRepository.findById(userID)
+                .orElseThrow(() -> new RuntimeException("해당 유저가 존재하지 않습니다. userID=" + userID));
+
+        return new GetUserInfoResponseDTO(
+                user.getUserId(),
+                user.getUsername(),
+                user.getRole(),
+                user.getEmailAddress(),
+                user.getLastModifiedAt(),
+                user.getCreatedAt()
+        );
     }
 }

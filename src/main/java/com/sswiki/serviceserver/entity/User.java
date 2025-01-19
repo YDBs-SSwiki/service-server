@@ -19,6 +19,7 @@ public class User {
     private String googleKey;
     private String username;
     private String role;
+    private String emailAddress;
 
     private LocalDateTime lastModifiedAt;
     private LocalDateTime createdAt;

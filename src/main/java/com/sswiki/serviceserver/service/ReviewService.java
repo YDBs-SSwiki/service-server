@@ -145,4 +145,23 @@ public class ReviewService {
         return new UpdateReviewLikeResponseDTO(reviewId, userId, like, totalLikes);
     }
 
+    /**
+     * 리뷰 삭제 (작성자만 가능)
+     */
+    @Transactional
+    public void deleteReview(Integer reviewId, Integer requestUserId) {
+        // 1) 리뷰 조회
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new RuntimeException("해당 리뷰가 존재하지 않습니다. reviewId=" + reviewId));
+
+        // 2) 작성자와 요청자 동일 여부 확인
+        Integer writerId = review.getUser().getUserId();
+        if (!writerId.equals(requestUserId)) {
+            throw new RuntimeException("리뷰 작성자만 삭제할 수 있습니다.");
+        }
+
+        // 3) 삭제
+        reviewRepository.delete(review);
+    }
+
 }

@@ -4,6 +4,7 @@ import com.sswiki.serviceserver.dto.CreateReviewResponseDTO;
 import com.sswiki.serviceserver.dto.UpdateReviewLikeRequestDTO;
 import com.sswiki.serviceserver.dto.UpdateReviewLikeResponseDTO;
 import com.sswiki.serviceserver.service.ReviewService;
+import jakarta.servlet.http.HttpSession;
 import org.antlr.v4.runtime.misc.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -62,4 +63,37 @@ public class ReviewController {
         return ResponseEntity.ok(response);
     }
 
+
+    /**
+     * 리뷰 삭제 API
+     * - 리뷰 작성자만 삭제 가능
+     */
+    @DeleteMapping("/{reviewId}")
+    public ResponseEntity<?> deleteReview(
+            @PathVariable Integer reviewId,
+            HttpSession session
+    ) {
+        // 1) 세션에서 로그인된 사용자 ID 가져오기
+        Integer loggedInUserId = (Integer) session.getAttribute("loggedInUserId");
+        if (loggedInUserId == null) {
+            // 로그인하지 않았다면 401(Unauthorized) 응답
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("로그인이 필요합니다.");
+        }
+
+        try {
+            // 2) ReviewService를 통해 삭제 로직 처리
+            reviewService.deleteReview(reviewId, loggedInUserId);
+            // 3) 성공 시 200 OK
+            return ResponseEntity.ok("리뷰가 성공적으로 삭제되었습니다.");
+        } catch (RuntimeException e) {
+            // 본인이 아닌데 삭제 시도 or 리뷰가 없음 등 예외 처리
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(e.getMessage());
+        } catch (Exception e) {
+            // 그 외 에러
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("리뷰 삭제 중 오류가 발생했습니다.");
+        }
+    }
 }
