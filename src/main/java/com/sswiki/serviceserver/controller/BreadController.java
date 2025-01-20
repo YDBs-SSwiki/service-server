@@ -1,9 +1,6 @@
 package com.sswiki.serviceserver.controller;
 
-import com.sswiki.serviceserver.dto.BreadDetailResponseDTO;
-import com.sswiki.serviceserver.dto.BreadSummaryResponseDTO;
-import com.sswiki.serviceserver.dto.GetAllBreadsResponseDTO;
-import com.sswiki.serviceserver.dto.GetBreadReviewsResponseDTO;
+import com.sswiki.serviceserver.dto.*;
 import com.sswiki.serviceserver.entity.Bread;
 import com.sswiki.serviceserver.service.BreadService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,5 +61,11 @@ public class BreadController {
     @GetMapping("{breadId}/reviews")
     public GetBreadReviewsResponseDTO getBreadReviews(@PathVariable Integer breadId) {
         return breadService.getBreadReviews(breadId);
+    }
+
+    // keyword로 빵 검색하기
+    @GetMapping("/search")
+    public SearchBreadsResponseDTO searchBreads(@RequestParam("keyword") String keyword) {
+        return breadService.searchBreads(keyword);
     }
 }

@@ -195,4 +195,17 @@ public class BreadService {
         );
     }
 
+    public SearchBreadsResponseDTO searchBreads(String keyword) {
+        List<Bread> foundBreads = breadRepository.findByNameContainingIgnoreCase(keyword);
+
+        // 3) DTO 로 변환
+        List<SearchBreadsResponseDTO.SearchResultDTO> resultDTOs = foundBreads.stream()
+                .map(bread -> new SearchBreadsResponseDTO.SearchResultDTO(
+                        bread.getBreadId(),
+                        bread.getName()
+                ))
+                .collect(Collectors.toList());
+
+        return new SearchBreadsResponseDTO(resultDTOs);
+    }
 }
