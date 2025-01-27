@@ -1,5 +1,7 @@
 package com.sswiki.serviceserver.service;
 
+import com.sswiki.serviceserver.dto.DeleteFavoriteRequestDTO;
+import com.sswiki.serviceserver.dto.DeleteFavoriteResponseDTO;
 import com.sswiki.serviceserver.dto.SetFavoriteRequestDTO;
 import com.sswiki.serviceserver.dto.SetFavoriteResponseDTO;
 import com.sswiki.serviceserver.entity.Bread;
@@ -67,6 +69,32 @@ public class FavoriteService {
         response.setFavoriteSet(true);
         // createdAt을 LocalDate가 아닌 LocalDateTime으로 변경하고 싶다면, DTO 타입 수정 필요
         response.setCreatedAt(java.time.LocalDate.now());
+        return response;
+    }
+
+    /**
+     * 찜 삭제 메서드
+     */
+    public DeleteFavoriteResponseDTO deleteFavorite(DeleteFavoriteRequestDTO requestDTO) {
+        // 1. User, Bread 존재 여부 확인
+        User user = userRepository.findById(requestDTO.getUserId())
+                .orElseThrow(() -> new RuntimeException("로그인이 필요합니다."));
+        Bread bread = breadRepository.findById(requestDTO.getBreadId())
+                .orElseThrow(() -> new RuntimeException("해당 빵이 존재하지 않습니다. breadId=" + requestDTO.getBreadId()));
+
+        // 2. 해당 User + Bread로 Favorites 존재 여부 확인
+        Favorites favorite = (Favorites) favoriteRepository.findByUserAndBread(user, bread)
+                .orElseThrow(() -> new RuntimeException("해당 찜이 존재하지 않습니다."));
+
+        if (!favorite.getUser().getUserId().equals(user.getUserId())) {
+            throw new RuntimeException("찜 작성자만 삭제할 수 있습니다.");
+        }
+
+        favoriteRepository.delete(favorite);
+
+        DeleteFavoriteResponseDTO response = new DeleteFavoriteResponseDTO();
+        response.setMessage("찜이 성공적으로 삭제되었습니다.");
+
         return response;
     }
 }

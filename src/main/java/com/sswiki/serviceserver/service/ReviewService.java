@@ -2,6 +2,8 @@ package com.sswiki.serviceserver.service;
 
 import com.sswiki.serviceserver.dto.CreateReviewResponseDTO;
 import com.sswiki.serviceserver.dto.UpdateReviewLikeResponseDTO;
+import com.sswiki.serviceserver.dto.UpdateReviewRequestDTO;
+import com.sswiki.serviceserver.dto.UpdateReviewResponseDTO;
 import com.sswiki.serviceserver.entity.Bread;
 import com.sswiki.serviceserver.entity.Review;
 import com.sswiki.serviceserver.entity.ReviewLikes;
@@ -164,4 +166,48 @@ public class ReviewService {
         reviewRepository.delete(review);
     }
 
+    /**
+     * 리뷰 수정
+     * @param reviewId       수정할 리뷰의 ID
+     * @param requestUserId  세션 등에서 가져온 로그인 사용자 ID
+     * @param requestDTO     수정 요청 정보 (rating, content 등)
+     * @return 수정 완료 후 결과 DTO (원한다면 void로 해도 됨)
+     */
+    @Transactional
+    public UpdateReviewResponseDTO updateReview(
+            Integer reviewId,
+            Integer requestUserId,
+            UpdateReviewRequestDTO requestDTO
+    ) {
+        // 1) 리뷰 조회
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new RuntimeException("해당 리뷰가 존재하지 않습니다. reviewId=" + reviewId));
+
+        // 2) 작성자와 요청자 동일 여부 확인
+        Integer writerId = review.getUser().getUserId();
+        if (!writerId.equals(requestUserId)) {
+            throw new RuntimeException("리뷰 작성자만 수정할 수 있습니다.");
+        }
+
+        // 3) 수정
+        review.setRating(requestDTO.getRating());
+        review.setContent(requestDTO.getContent());
+        review.setUpdatedAt(LocalDateTime.now());
+
+        // 4) 수정 결과를 응답 DTO로 매핑
+        UpdateReviewResponseDTO responseDTO = new UpdateReviewResponseDTO();
+        responseDTO.setReviewId(review.getReviewId());
+        responseDTO.setBreadId(review.getBread().getBreadId());   // 리뷰의 빵 ID
+        responseDTO.setUserId(review.getUser().getUserId());      // 리뷰 작성자 ID
+        responseDTO.setRating(review.getRating());
+        responseDTO.setContent(review.getContent());
+
+        // createdAt 등 날짜는 문자열로 변환 (필요 시 포매팅)
+        if (review.getCreatedAt() != null) {
+            responseDTO.setCreatedAt(review.getCreatedAt().toString());
+        }
+
+        // 수정된 리뷰 DTO 반환
+        return responseDTO;
+    }
 }

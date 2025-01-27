@@ -1,13 +1,12 @@
 package com.sswiki.serviceserver.controller;
 
+import com.sswiki.serviceserver.dto.DeleteFavoriteRequestDTO;
+import com.sswiki.serviceserver.dto.DeleteFavoriteResponseDTO;
 import com.sswiki.serviceserver.dto.SetFavoriteRequestDTO;
 import com.sswiki.serviceserver.dto.SetFavoriteResponseDTO;
 import com.sswiki.serviceserver.service.FavoriteService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/favorites")
@@ -23,5 +22,10 @@ public class FavoriteController {
     @PostMapping
     public SetFavoriteResponseDTO addFavorite(@RequestBody SetFavoriteRequestDTO favoriteRequest) {
         return favoriteService.addFavorite(favoriteRequest);
+    }
+
+    @DeleteMapping("/delete")
+    public DeleteFavoriteResponseDTO deleteFavorite(@RequestBody DeleteFavoriteRequestDTO requestDTO) {
+        return favoriteService.deleteFavorite(requestDTO);
     }
 }

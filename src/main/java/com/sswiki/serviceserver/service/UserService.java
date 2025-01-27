@@ -1,10 +1,7 @@
 package com.sswiki.serviceserver.service;
 
 import com.sswiki.serviceserver.dto.*;
-import com.sswiki.serviceserver.entity.Bread;
-import com.sswiki.serviceserver.entity.Favorites;
-import com.sswiki.serviceserver.entity.Review;
-import com.sswiki.serviceserver.entity.User;
+import com.sswiki.serviceserver.entity.*;
 import com.sswiki.serviceserver.repository.*;
 import org.springframework.stereotype.Service;
 
@@ -121,5 +118,30 @@ public class UserService {
                 user.getLastModifiedAt(),
                 user.getCreatedAt()
         );
+    }
+
+    public GetUserLikesResponseDTO getUserLikes(Integer userID) {
+        // 1) userID로 User 엔티티 조회 (유효성 체크)
+        User user = userRepository.findById(userID)
+                .orElseThrow(() -> new RuntimeException("해당 유저가 존재하지 않습니다. userID=" + userID));
+
+        // 2) ReviewLikes 테이블에서 userID에 해당하는 좋아요 목록 전부 가져오기
+        List<ReviewLikes> likes = reviewLikesRepository.findByUserUserId(userID);
+
+        // 3) Review -> LikesItemDTO 매핑
+        List<LikesItemDTO> likesItems = likes.stream()
+                .map(review -> {
+                    LikesItemDTO item = new LikesItemDTO();
+                    item.setReviewId(review.getReview().getReviewId());
+                    return item;
+                })
+                .toList();
+
+        // 4) GetUserLikesResponseDTO 구성
+        GetUserLikesResponseDTO responseDTO = new GetUserLikesResponseDTO();
+        responseDTO.setUserId(userID);
+        responseDTO.setLikes(likesItems);
+
+        return responseDTO;
     }
 }

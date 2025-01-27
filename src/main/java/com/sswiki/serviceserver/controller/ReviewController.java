@@ -1,10 +1,9 @@
 package com.sswiki.serviceserver.controller;
 
-import com.sswiki.serviceserver.dto.CreateReviewResponseDTO;
-import com.sswiki.serviceserver.dto.UpdateReviewLikeRequestDTO;
-import com.sswiki.serviceserver.dto.UpdateReviewLikeResponseDTO;
+import com.sswiki.serviceserver.dto.*;
 import com.sswiki.serviceserver.service.ReviewService;
 import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
 import org.antlr.v4.runtime.misc.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -94,6 +93,36 @@ public class ReviewController {
             // 그 외 에러
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("리뷰 삭제 중 오류가 발생했습니다.");
+        }
+    }
+
+    @PostMapping("/{reviewId}/update")
+    public ResponseEntity<?> updateReview(
+            @PathVariable Integer reviewId,
+            @Valid @RequestBody UpdateReviewRequestDTO requestDTO,
+            HttpSession session
+    ) {
+        // 세션에서 로그인된 사용자 ID 가져오기
+        Integer loggedInUserId = (Integer) session.getAttribute("loggedInUserId");
+        if (loggedInUserId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("로그인이 필요합니다.");
+        }
+
+        try {
+            // DTO를 사용해 리뷰 수정
+            UpdateReviewResponseDTO responseDTO =
+                    reviewService.updateReview(reviewId, loggedInUserId, requestDTO);
+
+            return ResponseEntity.ok(responseDTO);
+
+        } catch (RuntimeException e) {
+            // 작성자 불일치, 리뷰 없음 등
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+        } catch (Exception e) {
+            // 그 외 오류
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("리뷰 수정 중 오류가 발생했습니다.");
         }
     }
 }

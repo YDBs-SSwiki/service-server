@@ -58,7 +58,7 @@ public class BreadController {
     }
 
     // 해당 breadId에 해당하는 빵 리뷰 가져오기
-    @GetMapping("{breadId}/reviews")
+    @GetMapping("/{breadId}/reviews")
     public GetBreadReviewsResponseDTO getBreadReviews(@PathVariable Integer breadId) {
         return breadService.getBreadReviews(breadId);
     }
@@ -67,5 +67,10 @@ public class BreadController {
     @GetMapping("/search")
     public SearchBreadsResponseDTO searchBreads(@RequestParam("keyword") String keyword) {
         return breadService.searchBreads(keyword);
+    }
+
+    @PostMapping("/{breadId}/update")
+    public UpdateBreadResponseDTO updateBread(@PathVariable Integer breadId, @RequestBody UpdateBreadRequestDTO requestDTO) {
+        return breadService.updateBread(breadId, requestDTO);
     }
 }

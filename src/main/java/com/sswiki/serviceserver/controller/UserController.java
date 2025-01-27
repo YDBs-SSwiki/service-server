@@ -43,4 +43,9 @@ public class UserController {
     public UpdateUserResponseDTO updateUser(@PathVariable Integer userID, @RequestBody UpdateUserRequestDTO requestDTO) {
         return userService.updateUser(userID, requestDTO);
     }
+
+    @GetMapping("/{userID}/likes")
+    public GetUserLikesResponseDTO getUserLikes(@PathVariable Integer userID) {
+        return userService.getUserLikes(userID);
+    }
 }
