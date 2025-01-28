@@ -11,6 +11,10 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/auth")
+@CrossOrigin(
+        originPatterns = "http://localhost:52904", // 혹은 "https://example.com" 등
+        allowCredentials = "true"
+)
 public class AuthController {
 
     private final AuthService authService;

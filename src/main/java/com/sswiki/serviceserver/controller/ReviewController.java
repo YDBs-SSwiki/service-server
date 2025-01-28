@@ -16,6 +16,10 @@ import jakarta.validation.constraints.*;
 
 @RestController
 @RequestMapping("/reviews")
+@CrossOrigin(
+        originPatterns = "http://localhost:52904", // 혹은 "https://example.com" 등
+        allowCredentials = "true"
+)
 public class ReviewController {
     private final ReviewService reviewService;
 
