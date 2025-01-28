@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import org.antlr.v4.runtime.misc.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -96,10 +97,14 @@ public class ReviewController {
         }
     }
 
-    @PostMapping("/{reviewId}/update")
+    @PostMapping(
+            value = "/{reviewId}/update",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
     public ResponseEntity<?> updateReview(
             @PathVariable Integer reviewId,
-            @Valid @RequestBody UpdateReviewRequestDTO requestDTO,
+            @RequestPart("review") @Valid UpdateReviewRequestDTO requestDTO,
+            @RequestPart(value = "imageFile", required = false) MultipartFile imageFile,
             HttpSession session
     ) {
         // 세션에서 로그인된 사용자 ID 가져오기
@@ -110,9 +115,13 @@ public class ReviewController {
         }
 
         try {
-            // DTO를 사용해 리뷰 수정
-            UpdateReviewResponseDTO responseDTO =
-                    reviewService.updateReview(reviewId, loggedInUserId, requestDTO);
+            // 서비스 호출 시 imageFile도 함께 전달
+            UpdateReviewResponseDTO responseDTO = reviewService.updateReview(
+                    reviewId,
+                    loggedInUserId,
+                    requestDTO,
+                    imageFile
+            );
 
             return ResponseEntity.ok(responseDTO);
 

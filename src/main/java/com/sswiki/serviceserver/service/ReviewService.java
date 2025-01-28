@@ -17,6 +17,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import org.springframework.transaction.annotation.Transactional;
+
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -166,19 +168,14 @@ public class ReviewService {
         reviewRepository.delete(review);
     }
 
-    /**
-     * 리뷰 수정
-     * @param reviewId       수정할 리뷰의 ID
-     * @param requestUserId  세션 등에서 가져온 로그인 사용자 ID
-     * @param requestDTO     수정 요청 정보 (rating, content 등)
-     * @return 수정 완료 후 결과 DTO (원한다면 void로 해도 됨)
-     */
     @Transactional
     public UpdateReviewResponseDTO updateReview(
             Integer reviewId,
             Integer requestUserId,
-            UpdateReviewRequestDTO requestDTO
-    ) {
+            UpdateReviewRequestDTO requestDTO,
+            MultipartFile imageFile
+    ) throws Exception {
+
         // 1) 리뷰 조회
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new RuntimeException("해당 리뷰가 존재하지 않습니다. reviewId=" + reviewId));
@@ -190,8 +187,29 @@ public class ReviewService {
         }
 
         // 3) 수정
+        //    (평점, 내용, 빵ID 등은 필요에 따라 적용)
         review.setRating(requestDTO.getRating());
         review.setContent(requestDTO.getContent());
+        // 만약 requestDTO.getBreadId()로 빵 변경도 가능하게 하려면 그 부분도 추가
+
+        // + 이미지 파일이 있으면 업데이트
+        if (imageFile != null && !imageFile.isEmpty()) {
+            // 기존 파일을 삭제할지 여부는 정책에 따라 결정
+            // s3Service.deleteFile(review.getImageUrl()); 등
+
+            String originalFilename = imageFile.getOriginalFilename();
+            String fileName = "review_" + System.currentTimeMillis() + "_" + originalFilename;
+            // S3에 업로드
+            String imageUrl = s3Service.uploadFile(
+                    fileName,
+                    imageFile.getInputStream(),
+                    imageFile.getContentType()
+            );
+            // 업로드한 이미지 URL로 덮어쓰기
+            review.setImageUrl(imageUrl);
+        }
+        // 혹은 "removeImage" 여부를 파라미터로 받아서, true면 이미지 삭제 후 DB에 null로 세팅하는 것도 가능
+
         review.setUpdatedAt(LocalDateTime.now());
 
         // 4) 수정 결과를 응답 DTO로 매핑
@@ -201,13 +219,13 @@ public class ReviewService {
         responseDTO.setUserId(review.getUser().getUserId());      // 리뷰 작성자 ID
         responseDTO.setRating(review.getRating());
         responseDTO.setContent(review.getContent());
-
-        // createdAt 등 날짜는 문자열로 변환 (필요 시 포매팅)
         if (review.getCreatedAt() != null) {
             responseDTO.setCreatedAt(review.getCreatedAt().toString());
         }
+        responseDTO.setImageUrl(review.getImageUrl());
 
         // 수정된 리뷰 DTO 반환
         return responseDTO;
     }
+
 }

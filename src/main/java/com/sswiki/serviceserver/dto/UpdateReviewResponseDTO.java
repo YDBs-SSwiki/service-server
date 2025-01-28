@@ -13,4 +13,5 @@ public class UpdateReviewResponseDTO {
     private Integer rating;
     private String content;
     private String createdAt;
+    private String imageUrl;
 }
