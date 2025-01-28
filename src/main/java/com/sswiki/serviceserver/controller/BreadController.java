@@ -4,6 +4,7 @@ import com.sswiki.serviceserver.dto.*;
 import com.sswiki.serviceserver.entity.Bread;
 import com.sswiki.serviceserver.service.BreadService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -69,8 +70,17 @@ public class BreadController {
         return breadService.searchBreads(keyword);
     }
 
-    @PostMapping("/{breadId}/update")
-    public UpdateBreadResponseDTO updateBread(@PathVariable Integer breadId, @RequestBody UpdateBreadRequestDTO requestDTO) {
-        return breadService.updateBread(breadId, requestDTO);
+    @PostMapping(
+            value = "/{breadId}/update",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
+    public UpdateBreadResponseDTO updateBread(
+            @PathVariable Integer breadId,
+            @RequestPart("bread") UpdateBreadRequestDTO requestDTO,
+            @RequestPart(value = "imageFile", required = false) MultipartFile imageFile
+    ) throws Exception {
+
+        // service 메서드도 이미지 파일을 받도록 변경
+        return breadService.updateBread(breadId, requestDTO, imageFile);
     }
 }

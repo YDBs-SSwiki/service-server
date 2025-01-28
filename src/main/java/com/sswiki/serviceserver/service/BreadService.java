@@ -9,6 +9,7 @@ import com.sswiki.serviceserver.repository.StoreRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.InputStream;
 import java.time.LocalDateTime;
@@ -206,56 +207,69 @@ public class BreadService {
         return new SearchBreadsResponseDTO(resultDTOs);
     }
 
-    public UpdateBreadResponseDTO updateBread(Integer breadId, UpdateBreadRequestDTO requestDTO) {
+    public UpdateBreadResponseDTO updateBread(
+            Integer breadId,
+            UpdateBreadRequestDTO requestDTO,
+            MultipartFile imageFile // ← 새로 추가
+    ) throws Exception {
         // 1. 기존 빵 엔티티 조회
         Bread bread = breadRepository.findById(breadId)
                 .orElseThrow(() -> new RuntimeException("Bread not found with id: " + breadId));
 
-        // 2. 빵 엔티티의 필드를 요청 DTO에 맞게 수정
+        // 2. 빵 엔티티의 필드 갱신
         bread.setName(requestDTO.getName());
         bread.setDetail(requestDTO.getDetail());
         bread.setPrice(requestDTO.getPrice());
         bread.setCount(requestDTO.getCount());
 
-        // 3. 스토어 연관관계(breadToStores) 수정
-        //    (1) 기존 리스트 전체 제거 후 새로 세팅하는 가장 간단한 방법
+        // 이미지가 있으면 S3에 업로드 후 imageUrl 갱신
+        if (imageFile != null && !imageFile.isEmpty()) {
+            // 업로드할 파일명 (예: "bread_현재시간_원본파일명")
+            String originalFilename = imageFile.getOriginalFilename();
+            String fileName = "bread_" + System.currentTimeMillis() + "_" + originalFilename;
+
+            // S3 업로드
+            String imageUrl = s3Service.uploadFile(
+                    fileName,
+                    imageFile.getInputStream(),
+                    imageFile.getContentType()
+            );
+
+            // 기존 이미지 삭제가 필요하다면 s3Service.deleteFile(...) 등을 호출 가능
+            // 여기서는 단순히 새 이미지로 교체
+            bread.setImageUrl(imageUrl);
+        }
+
+        // 연관된 매장 정보(storeIds)도 업데이트
+        // (1) 기존 BreadToStores 목록 초기화
         bread.getBreadToStores().clear();
 
-        //    (2) 요청으로 들어온 storeIds를 이용해 다시 매핑
+        // (2) storeIds 재매핑
         if (requestDTO.getStoreIds() != null) {
             for (Integer storeId : requestDTO.getStoreIds()) {
                 Store store = storeRepository.findById(storeId)
                         .orElseThrow(() -> new RuntimeException("Store not found with id: " + storeId));
 
-                // BreadToStores 생성
                 BreadToStores breadToStores = new BreadToStores();
                 breadToStores.setBread(bread);
                 breadToStores.setStore(store);
                 breadToStores.setId(new BreadToStoresId(bread.getBreadId(), store.getStoreId()));
 
-                // 양방향(혹은 단방향) 매핑 처리
                 bread.getBreadToStores().add(breadToStores);
             }
         }
 
-        // 4. 수정된 빵 엔티티 저장
+        // 3. 수정된 빵 엔티티 저장 (DB 반영)
+        bread.setUpdatedAt(LocalDateTime.now());
         Bread updatedBread = breadRepository.save(bread);
 
-        // 5. 응답 DTO 생성
+        // 4. 응답 DTO 생성
         UpdateBreadResponseDTO response = new UpdateBreadResponseDTO();
         response.setBreadId(updatedBread.getBreadId());
         response.setName(updatedBread.getName());
         response.setDetail(updatedBread.getDetail());
         response.setPrice(updatedBread.getPrice());
         response.setCount(updatedBread.getCount());
-
-        // storeIds는 매핑된 BreadToStores에서 추출
-        List<Integer> storeIds = updatedBread.getBreadToStores().stream()
-                .map(bts -> bts.getStore().getStoreId())
-                .collect(Collectors.toList());
-        response.setStoreIds(storeIds);
-
-        // imageUrl, createdAt, updatedAt 등은 필요에 맞게 설정
         response.setImageUrl(updatedBread.getImageUrl());
         response.setCreatedAt(
                 (updatedBread.getCreatedAt() != null) ? updatedBread.getCreatedAt().toString() : null
@@ -263,6 +277,12 @@ public class BreadService {
         response.setUpdatedAt(
                 (updatedBread.getUpdatedAt() != null) ? updatedBread.getUpdatedAt().toString() : null
         );
+
+        // 스토어 ID 리스트
+        List<Integer> storeIds = updatedBread.getBreadToStores().stream()
+                .map(bts -> bts.getStore().getStoreId())
+                .collect(Collectors.toList());
+        response.setStoreIds(storeIds);
 
         return response;
     }
